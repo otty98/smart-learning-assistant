@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Study Buddy - Multi-Subject Learning Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4895ef;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4cc9f0;
+            --warning-color: #f72585;
+            --danger-color: #e63946;
+            --subject-quantum: #7209b7;
+            --subject-biology: #2a9d8f;
+            --subject-calculus: #f77f00;
+            --subject-ml: #e76f51;
+            --subject-literature: #9d4edd;
+            --subject-history: #ff9e00;
+            --border-radius: 12px;
+            --box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: rgba(10, 15, 35, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 20px 0;
+            box-shadow: var(--box-shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .logo-icon {
+            background: var(--primary-color);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(67, 97, 238, 0.4);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+
+        nav ul li a {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        nav ul li a:hover, nav ul li a.active {
+            background: rgba(67, 97, 238, 0.2);
+            color: #fff;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .auth-buttons button {
+            padding: 10px 24px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .auth-buttons .login-btn {
+            background: transparent;
+            border: 2px solid var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .auth-buttons .signup-btn {
+            background: linear-gradient(90deg, var(--accent-color), var(--primary-color));
+            color: white;
+            box-shadow: 0 4px 15px rgba(72, 149, 239, 0.3);
+        }
+
+        .auth-buttons button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Auth Modal Styles */
+        .auth-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .auth-modal.active {
+            display: flex;
+        }
+        
+        .auth-modal-content {
+            background: #1a1a2e;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            width: 100%;
+            max-width: 450px;
+            box-shadow: var(--box-shadow);
+            position: relative;
+        }
+        
+        .close-auth-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.6);
+            transition: var(--transition);
+        }
+        
+        .close-auth-modal:hover {
+            color: var(--accent-color);
+        }
+        
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .auth-tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .auth-tab.active {
+            color: var(--accent-color);
+        }
+        
+        .auth-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--accent-color);
+        }
+        
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .auth-form h2 {
+            color: white;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .auth-form input {
+            padding: 14px 18px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius);
+            color: white;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+        
+        .auth-form input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.2);
+        }
+        
+        .auth-btn {
+            padding: 14px;
+            background: linear-gradient(90deg, var(--accent-color), var(--primary-color));
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 16px;
+        }
+        
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .user-profile {
+            display: none;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-profile.active {
+            display: flex;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        .logout-btn {
+            background: rgba(230, 57, 70, 0.2);
+            border: 1px solid var(--danger-color);
+            color: var(--danger-color);
+            padding: 8px 15px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .logout-btn:hover {
+            background: rgba(230, 57, 70, 0.3);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .sidebar {
+            background: rgba(25, 30, 60, 0.7);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: var(--box-shadow);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            height: fit-content;
+        }
+
+        .sidebar-section {
+            margin-bottom: 30px;
+        }
+
+        .sidebar-section h3 {
+            margin-bottom: 20px;
+            color: var(--accent-color);
+            font-size: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .subject-list {
+            list-style: none;
+        }
+
+        .subject-list li {
+            margin-bottom: 12px;
+            transition: var(--transition);
+        }
+
+        .subject-list a {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 14px 18px;
+            border-radius: var(--border-radius);
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            transition: var(--transition);
+            font-weight: 500;
+            border: 1px solid transparent;
+        }
+
+        .subject-list a:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(5px);
+        }
+
+        .subject-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .subject-quantum .subject-icon { background: var(--subject-quantum); }
+        .subject-biology .subject-icon { background: var(--subject-biology); }
+        .subject-calculus .subject-icon { background: var(--subject-calculus); }
+        .subject-ml .subject-icon { background: var(--subject-ml); }
+        .subject-literature .subject-icon { background: var(--subject-literature); }
+        .subject-history .subject-icon { background: var(--subject-history); }
+
+        .active-subject a {
+            background: rgba(67, 97, 238, 0.25) !important;
+            border-color: var(--primary-color) !important;
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .study-stats {
+            background: rgba(40, 45, 80, 0.6);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-top: 25px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            height: 10px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+        }
+
+        .subject-quantum .progress-fill { background: var(--subject-quantum); width: 65%; }
+        .subject-biology .progress-fill { background: var(--subject-biology); width: 45%; }
+        .subject-calculus .progress-fill { background: var(--subject-calculus); width: 80%; }
+        .subject-ml .progress-fill { background: var(--subject-ml); width: 30%; }
+        .subject-literature .progress-fill { background: var(--subject-literature); width: 55%; }
+        .subject-history .progress-fill { background: var(--subject-history); width: 70%; }
+
+        .chat-container {
+            background: rgba(25, 30, 60, 0.7);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 180px);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .chat-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .subject-badge {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .badge-quantum { background: var(--subject-quantum); }
+        .badge-biology { background: var(--subject-biology); }
+        .badge-calculus { background: var(--subject-calculus); }
+        .badge-ml { background: var(--subject-ml); }
+        .badge-literature { background: var(--subject-literature); }
+        .badge-history { background: var(--subject-history); }
+
+        .chat-header h2 {
+            font-size: 24px;
+            color: #fff;
+        }
+
+        .chat-tools {
+            display: flex;
+            gap: 12px;
+        }
+
+        .tool-btn {
+            background: rgba(67, 97, 238, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            color: #fff;
+            font-size: 18px;
+        }
+
+        .tool-btn:hover {
+            background: rgba(67, 97, 238, 0.35);
+            transform: translateY(-3px);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 18px 22px;
+            border-radius: var(--border-radius);
+            position: relative;
+            line-height: 1.6;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-bottom-right-radius: 5px;
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+        }
+
+        .ai-message {
+            align-self: flex-start;
+            background: rgba(40, 45, 80, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .message-sender {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .message-time {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .message-content {
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .message-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+            justify-content: flex-end;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: rgba(255, 255, 255, 0.8);
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .typing-indicator {
+            display: none;
+            background: rgba(40, 45, 80, 0.8);
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            align-self: flex-start;
+            margin: 0 25px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .typing-dot {
+            width: 10px;
+            height: 10px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-6px); }
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 16px 20px;
+            background: rgba(30, 35, 70, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius);
+            resize: none;
+            font-size: 16px;
+            transition: var(--transition);
+            color: #fff;
+            min-height: 60px;
+            max-height: 150px;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.2);
+        }
+
+        .input-tools {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .voice-btn, .upload-btn {
+            background: rgba(67, 97, 238, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            color: #fff;
+            font-size: 20px;
+            position: relative;
+        }
+
+        .voice-btn:hover, .upload-btn:hover {
+            background: rgba(67, 97, 238, 0.35);
+            transform: translateY(-3px);
+        }
+
+        .voice-btn.listening {
+            animation: pulse 1.5s infinite;
+            background: rgba(247, 37, 133, 0.3);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(247, 37, 133, 0.5); }
+            70% { box-shadow: 0 0 0 12px rgba(247, 37, 133, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(247, 37, 133, 0); }
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(72, 149, 239, 0.4);
+        }
+
+        .send-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(72, 149, 239, 0.6);
+        }
+
+        .send-button:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .features-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: rgba(25, 30, 60, 0.7);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+            border-color: var(--accent-color);
+        }
+
+        .feature-icon {
+            font-size: 42px;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 15px;
+            color: #fff;
+            font-size: 22px;
+        }
+
+        .feature-card p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+            line-height: 1.7;
+        }
+
+        /* Responsive design */
+        @media (max-width: 1100px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .chat-container {
+                height: 600px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            nav ul {
+                flex-wrap: wrap;
+            }
+            
+            .chat-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .message {
+                max-width: 95%;
+            }
+            
+            .features-container {
+                grid-template-columns: 1fr;
+            }
+        }
+      .image-container {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;     /* makes it a perfect circle */
+    overflow: hidden;
+    border: 3px solid #4148a0;
+    align-content: center;  
+}
+
+.image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+
+       
+        
+
+    </style>
+</head>
+<body>
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="auth-modal">
+        <div class="auth-modal-content">
+            <span class="close-auth-modal">&times;</span>
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-tab="login">Login</button>
+                <button class="auth-tab" data-tab="register">Register</button>
+            </div>
+            
+            <div id="login-form" class="auth-form">
+                <h2>Login to Your Account</h2>
+                <input type="email" id="login-email" placeholder="Email" required>
+                <input type="password" id="login-password" placeholder="Password" required>
+                <button id="login-btn" class="auth-btn">Login</button>
+            </div>
+            
+            <div id="register-form" class="auth-form hidden">
+                <h2>Create New Account</h2>
+                <input type="text" id="register-name" placeholder="Name" required>
+                <input type="email" id="register-email" placeholder="Email" required>
+                <input type="password" id="register-password" placeholder="Password" required>
+                <button id="register-btn" class="auth-btn">Register</button>
+            </div>
+        </div>
+    </div>
+
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <span>AI Study Buddy</span>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#" class="active"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="#"><i class="fas fa-book"></i> Subjects</a></li>
+                    <li><a href="#"><i class="fas fa-chart-line"></i> Progress</a></li>
+                    <li><a href="#"><i class="fas fa-graduation-cap"></i> Resources</a></li>
+                </ul>
+            </nav>
+            <div id="user-profile" class="user-profile">
+                <div class="user-avatar" id="user-avatar">U</div>
+                <button id="logout-btn" class="logout-btn">Logout</button>
+            </div>
+            <div class="auth-buttons">
+                <button class="login-btn" id="show-login-btn"><i class="fas fa-sign-in-alt"></i> Login</button>
+                <button class="signup-btn" id="show-register-btn"><i class="fas fa-user-plus"></i> Sign Up</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-book-open"></i> My Subjects</h3>
+                    <ul class="subject-list">
+                        <li class="subject-quantum active-subject">
+                            <a href="#" data-subject="Quantum Physics">
+                                <div class="subject-icon">
+                                    <i class="fas fa-atom"></i>
+                                </div>
+                                <span>Quantum Physics</span>
+                            </a>
+                        </li>
+                        <li class="subject-biology">
+                            <a href="#" data-subject="Molecular Biology">
+                                <div class="subject-icon">
+                                    <i class="fas fa-dna"></i>
+                                </div>
+                                <span>Molecular Biology</span>
+                            </a>
+                        </li>
+                        <li class="subject-calculus">
+                            <a href="#" data-subject="Advanced Calculus">
+                                <div class="subject-icon">
+                                    <i class="fas fa-calculator"></i>
+                                </div>
+                                <span>Advanced Calculus</span>
+                            </a>
+                        </li>
+                        <li class="subject-ml">
+                            <a href="#" data-subject="Machine Learning">
+                                <div class="subject-icon">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <span>Machine Learning</span>
+                            </a>
+                        </li>
+                        <li class="subject-literature">
+                            <a href="#" data-subject="World Literature">
+                                <div class="subject-icon">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                <span>World Literature</span>
+                            </a>
+                        </li>
+                        <li class="subject-history">
+                            <a href="#" data-subject="Modern History">
+                                <div class="subject-icon">
+                                    <i class="fas fa-landmark"></i>
+                                </div>
+                                <span>Modern History</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-tools"></i> Study Tools</h3>
+                    <ul class="subject-list">
+                        <li><a href="#"><i class="fas fa-flash"></i> Quick Quiz</a></li>
+                        <li><a href="#"><i class="fas fa-layer-group"></i> Flashcards</a></li>
+                        <li><a href="#"><i class="fas fa-chart-pie"></i> Progress Tracker</a></li>
+                        <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+                    </ul>
+                </div>
+
+                <div class="study-stats">
+                    <h3><i class="fas fa-chart-bar"></i> Study Progress</h3>
+                    <div class="subject-quantum">
+                        <div class="stat-item">
+                            <span>Quantum Physics</span>
+                            <span>65%</span>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-fill"></div>
+                        </div>
+                    </div>
+                    <div class="subject-biology">
+                        <div class="stat-item">
+                            <span>Molecular Biology</span>
+                            <span>45%</span>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-fill"></div>
+                        </div>
+                    </div>
+                    <div class="subject-calculus">
+                        <div class="stat-item">
+                            <span>Advanced Calculus</span>
+                            <span>80%</span>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress-fill"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-container">
+                <div class="chat-header">
+                    <div class="chat-title">
+                        <h2>Quantum Physics Assistant</h2>
+                        <div class="subject-badge badge-quantum">Quantum Physics</div>
+                    </div>
+                    <div class="chat-tools">
+                        <button class="tool-btn" title="Save Chat"><i class="fas fa-save"></i></button>
+                        <button class="tool-btn" title="Clear Chat"><i class="fas fa-trash-alt"></i></button>
+                        <button class="tool-btn" title="Export Notes"><i class="fas fa-file-export"></i></button>
+                    </div>
+                </div>
+
+                <div class="chat-messages" id="chat-messages">
+                    <div class="ai-message message">
+                        <div class="message-header">
+                            <div class="message-sender">Study Buddy</div>
+                            <div class="message-time">Just now</div>
+                        </div>
+                        <div class="message-content">
+                            <p>Hello! I'm your AI Study Buddy for Quantum Physics. I can help explain concepts, solve problems, and quiz you on key topics. What would you like to learn about today?</p>
+                        </div>
+                        <div class="message-actions">
+                            <button class="action-btn"><i class="fas fa-volume-up"></i> Listen</button>
+                            <button class="action-btn"><i class="fas fa-save"></i> Save</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="typing-indicator" id="typing-indicator">
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                    <span>Study Buddy is typing...</span>
+                </div>
+
+                <div class="chat-input-container">
+                    <textarea class="chat-input" id="chat-input" placeholder="Ask me anything about Quantum Physics..." rows="1"></textarea>
+                    <div class="input-tools">
+                        <button class="voice-btn" id="voice-btn" title="Voice Input">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <label class="upload-btn" title="Upload Course PDF">
+                          <i class="fas fa-paperclip"></i>
+                          <input type="file" id="pdf-upload" accept="application/pdf" hidden>
+                        </label>
+                    </div>
+                    <button class="send-button" id="send-button">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+         <div class="features-container">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h3>Multi-Subject Expertise</h3>
+                <p>Our AI tutor is trained across various academic disciplines, providing expert guidance in quantum physics, molecular biology, calculus, machine learning, literature, and history.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-voice"></i>
+                </div>
+                <h3>Voice & Audio Integration</h3>
+                <p>Interact with voice commands and receive spoken explanations. Our advanced TTS system delivers clear, natural-sounding responses for enhanced learning.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <h3>Personalized Knowledge</h3>
+                <p>Upload your course materials to create a custom knowledge base. The AI references your documents to provide tailored explanations and study resources.</p>
+            </div>
+        </div>
+    </div>
+        
+        <div class="features-container">
+        <div class="feature-card">
+            <div class="image-container">
+                <img src="images/Mandla.jpg" alt="team pic" class="team- img" /></div>
+                <h3>Vundla Mandlenkosi</h3>
+                <p>I built and managed the backend for the AI Study Buddy app, handling user authentication, chat logic, PDF uploads, and AI integration. I connected the frontend to AI models using REST APIs, ensured smooth data processing, and kept everything secure and scalable for a seamless learning experience.</p>
+            </div>
+    
+            <div class="feature-card">
+             <div class="image-container">
+                 <img src="images/owethu.jpg" alt="team pic" class="team- img" /> </div>
+                <h3>Peyane Owethu</h3>
+                <p>Interact with voice commands and receive spoken explanations. Our advanced TTS system delivers clear, natural-sounding responses for enhanced learning.</p>
+            </div>
+                
+            <div class="feature-card">
+                <div class="image-container">
+                    <img src="../images/" alt="team pic" class="team- img" /> </div>
+                <h3>Mlambo Zama</h3>
+                <p>Upload your course materials to create a custom knowledge base. The AI references your documents to provide tailored explanations and study resources.</p>
+            </div>
+                </div>
+            
+
+
+    <script>
+        // DOM Elements
+        const chatInput = document.getElementById('chat-input');
+        const sendButton = document.getElementById('send-button');
+        const chatMessages = document.getElementById('chat-messages');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const voiceBtn = document.getElementById('voice-btn');
+        const subjectLinks = document.querySelectorAll('.subject-list a');
+        const subjectBadge = document.querySelector('.subject-badge');
+        const chatTitle = document.querySelector('.chat-header h2');
+        const pdfUpload = document.getElementById('pdf-upload');
+        
+        // Auth elements
+        const authModal = document.getElementById('auth-modal');
+        const closeAuthModal = document.querySelector('.close-auth-modal');
+        const authTabs = document.querySelectorAll('.auth-tab');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const loginBtn = document.getElementById('login-btn');
+        const registerBtn = document.getElementById('register-btn');
+        const showLoginBtn = document.getElementById('show-login-btn');
+        const showRegisterBtn = document.getElementById('show-register-btn');
+        const userProfile = document.getElementById('user-profile');
+        const userAvatar = document.getElementById('user-avatar');
+        const logoutBtn = document.getElementById('logout-btn');
+        const authButtons = document.querySelector('.auth-buttons');
+
+        // App State
+        let currentSubject = "Quantum Physics";
+        let isListening = false;
+        let recognition = null;
+        let chatHistory = [];
+        let currentUser = null;
+        
+        // Subject knowledge bases (simulated)
+        const subjectKnowledge = {
+            "Quantum Physics": {
+                welcome: "Welcome to Quantum Physics! I can explain concepts like superposition, entanglement, wave functions, and quantum computing.",
+                responses: {
+                    "hello": "Hello! Ready to explore the quantum realm? What topic are you interested in today?",
+                    "superposition": "Quantum superposition is a fundamental principle where a quantum system can exist in multiple states simultaneously until measured. Schrödinger's cat is a famous thought experiment illustrating this concept.",
+                    "entanglement": "Quantum entanglement occurs when particles become linked and instantaneously affect each other's state, regardless of distance. Einstein called this 'spooky action at a distance'.",
+                    "heisenberg": "The Heisenberg Uncertainty Principle states that you cannot simultaneously know both the position and momentum of a particle with perfect accuracy. This is fundamental to quantum mechanics."
+                },
+                extraMaterials: ""
+            },
+            "Molecular Biology": {
+                welcome: "Welcome to Molecular Biology! I can explain DNA replication, protein synthesis, gene expression, and cellular processes.",
+                responses: {
+                    "hello": "Hello! Ready to explore the building blocks of life? What topic can I help you with?",
+                    "dna": "DNA (Deoxyribonucleic Acid) is a double-stranded molecule that carries genetic instructions. Its structure is a double helix formed by nucleotide base pairs (A-T, C-G).",
+                    "replication": "DNA replication is the process where a cell makes an identical copy of its DNA. It's semi-conservative, meaning each new DNA molecule has one original and one new strand.",
+                    "central dogma": "The Central Dogma of molecular biology describes the flow of genetic information: DNA → RNA → Protein. Transcription converts DNA to RNA, translation converts RNA to protein."
+                },
+                extraMaterials: ""
+            },
+            "Advanced Calculus": {
+                welcome: "Welcome to Advanced Calculus! I can help with derivatives, integrals, multivariable calculus, and differential equations.",
+                responses: {
+                    "hello": "Hello! Ready to tackle some challenging calculus problems? What concept are you working on?",
+                    "derivative": "The derivative represents the rate of change of a function. Geometrically, it's the slope of the tangent line at a point. The derivative of x² is 2x, for example.",
+                    "integral": "Integration is the reverse process of differentiation. The definite integral calculates the area under a curve between two points. The integral of 2x is x² + C.",
+                    "fundamental theorem": "The Fundamental Theorem of Calculus connects differentiation and integration. Part 1 states that integration reverses differentiation, and Part 2 allows us to compute definite integrals using antiderivatives."
+                },
+                extraMaterials: ""
+            },
+            "Machine Learning": {
+                welcome: "Welcome to Machine Learning! I can explain neural networks, algorithms, model training, and AI applications.",
+                responses: {
+                    "hello": "Hello! Ready to dive into the world of artificial intelligence? What machine learning topic can I help with?",
+                    "neural network": "A neural network is a computational model inspired by the human brain. It consists of layers of interconnected nodes (neurons) that process inputs to produce outputs through weighted connections and activation functions.",
+                    "supervised learning": "Supervised learning uses labeled datasets to train algorithms. Common tasks include classification (categorizing data) and regression (predicting continuous values).",
+                    "overfitting": "Overfitting occurs when a model learns the training data too well, including noise, and performs poorly on new data. Techniques like regularization and cross-validation help prevent this."
+                },
+                extraMaterials: ""
+            },
+            "World Literature": {
+                welcome: "Welcome to World Literature! I can analyze literary works, discuss themes, explain historical contexts, and interpret symbolism.",
+                responses: {
+                    "hello": "Hello! Ready to explore great literary works? Which author or book would you like to discuss?",
+                    "shakespeare": "William Shakespeare (1564-1616) is considered the greatest English playwright. His works explore universal themes like love, power, jealousy, and the human condition. Key plays include Hamlet, Macbeth, and Romeo and Juliet.",
+                    "modernism": "Modernist literature (early 20th century) broke from traditional forms. Key features include stream of consciousness, fragmentation, and subjective perspectives. Important authors: Joyce, Woolf, Eliot, and Kafka.",
+                    "magical realism": "Magical realism blends realistic narrative with magical elements seamlessly. Originating in Latin America, notable authors include Gabriel García Márquez (One Hundred Years of Solitude) and Isabel Allende."
+                },
+                extraMaterials: ""
+            },
+            "Modern History": {
+                welcome: "Welcome to Modern History! I can discuss historical events, political movements, cultural shifts, and key figures from the 18th century to present.",
+                responses: {
+                    "hello": "Hello! Ready to explore pivotal moments in modern history? Which era or event interests you?",
+                    "wwii": "World War II (1939-1945) was a global conflict involving most nations. Key events include the rise of fascism, the Holocaust, Pearl Harbor, D-Day, and the atomic bombings of Hiroshima and Nagasaki.",
+                    "cold war": "The Cold War (1947-1991) was a period of geopolitical tension between the Soviet Union and the United States. It featured nuclear arms races, space races, and proxy wars without direct conflict between superpowers.",
+                    "civil rights": "The Civil Rights Movement (1954-1968) aimed to end racial segregation and discrimination against African Americans. Key events: Brown v. Board, Montgomery Bus Boycott, March on Washington, and Civil Rights Acts."
+                },
+                extraMaterials: ""
+            }
+        };
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', initApp);
+
+        function initApp() {
+            setupEventListeners();
+            updateSubjectBadge();
+            
+            // Check if user is logged in (simulated)
+            checkAuthStatus();
+        }
+
+        function setupEventListeners() {
+            // Chat input events
+            chatInput.addEventListener('input', handleChatInput);
+            chatInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (chatInput.value.trim() !== '') {
+                        sendMessage();
+                    }
+                }
+            });
+            
+            sendButton.addEventListener('click', sendMessage);
+            
+            // Subject selection events
+            subjectLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const subject = this.getAttribute('data-subject');
+                    changeSubject(subject);
+                });
+            });
+            
+            // Voice input events
+            voiceBtn.addEventListener('click', toggleVoiceInput);
+            
+            // PDF upload event
+            pdfUpload.addEventListener('change', handlePDFUpload);
+            
+            // Auth events
+            showLoginBtn.addEventListener('click', () => showAuthModal('login'));
+            showRegisterBtn.addEventListener('click', () => showAuthModal('register'));
+            closeAuthModal.addEventListener('click', hideAuthModal);
+            authTabs.forEach(tab => {
+                tab.addEventListener('click', () => switchAuthTab(tab.dataset.tab));
+            });
+            loginBtn.addEventListener('click', handleLogin);
+            registerBtn.addEventListener('click', handleRegister);
+            logoutBtn.addEventListener('click', handleLogout);
+        }
+
+        // Auth functions
+        function checkAuthStatus() {
+            // Simulated auth check - in a real app, this would check localStorage or make an API call
+            const user = localStorage.getItem('studyBuddyUser');
+            if (user) {
+                currentUser = JSON.parse(user);
+                updateAuthUI(true);
+            } else {
+                updateAuthUI(false);
+            }
+        }
+        
+        function showAuthModal(tab) {
+            authModal.classList.add('active');
+            switchAuthTab(tab);
+        }
+        
+        function hideAuthModal() {
+            authModal.classList.remove('active');
+        }
+        
+        function switchAuthTab(tab) {
+            authTabs.forEach(t => t.classList.remove('active'));
+            document.querySelector(`.auth-tab[data-tab="${tab}"]`).classList.add('active');
+            
+            if (tab === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+            }
+        }
+        
+        function handleLogin() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            // Simulated login - in a real app, this would be an API call
+            if (email && password) {
+                currentUser = {
+                    name: email.split('@')[0],
+                    email: email,
+                    avatarInitial: email.charAt(0).toUpperCase()
+                };
+                localStorage.setItem('studyBuddyUser', JSON.stringify(currentUser));
+                updateAuthUI(true);
+                hideAuthModal();
+                addMessageToChat('ai', `Welcome back, ${currentUser.name}! Your study progress has been loaded.`);
+            } else {
+                alert('Please enter both email and password');
+            }
+        }
+        
+        function handleRegister() {
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            
+            // Simulated registration - in a real app, this would be an API call
+            if (name && email && password) {
+                currentUser = {
+                    name: name,
+                    email: email,
+                    avatarInitial: name.charAt(0).toUpperCase()
+                };
+                localStorage.setItem('studyBuddyUser', JSON.stringify(currentUser));
+                updateAuthUI(true);
+                hideAuthModal();
+                addMessageToChat('ai', `Welcome to AI Study Buddy, ${currentUser.name}! Let's get started with your learning journey.`);
+            } else {
+                alert('Please fill in all fields');
+            }
+        }
+        
+        function handleLogout() {
+            currentUser = null;
+            localStorage.removeItem('studyBuddyUser');
+            updateAuthUI(false);
+            addMessageToChat('ai', 'You have been logged out. Your chat history has been saved and will be available when you log back in.');
+        }
+        
+        function updateAuthUI(isLoggedIn) {
+            if (isLoggedIn) {
+                authButtons.style.display = 'none';
+                userProfile.classList.add('active');
+                userAvatar.textContent = currentUser.avatarInitial;
+            } else {
+                authButtons.style.display = 'flex';
+                userProfile.classList.remove('active');
+            }
+        }
+
+        function handleChatInput() {
+            // Auto-resize textarea
+            chatInput.style.height = 'auto';
+            chatInput.style.height = (chatInput.scrollHeight) + 'px';
+        }
+
+        function sendMessage() {
+            const messageText = chatInput.value.trim();
+            if (messageText === '') return;
+            
+            // Add user message to chat
+            addMessageToChat('user', messageText);
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+            
+            // Show typing indicator
+            typingIndicator.style.display = 'flex';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Process message with AI
+            setTimeout(() => {
+                processUserMessage(messageText);
+            }, 500);
+        }
+
+        function addMessageToChat(sender, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            
+            const messageHeader = document.createElement('div');
+            messageHeader.className = 'message-header';
+            
+            const messageSender = document.createElement('div');
+            messageSender.className = 'message-sender';
+            messageSender.textContent = sender === 'user' ? (currentUser ? currentUser.name : 'You') : 'Study Buddy';
+            
+            const messageTime = document.createElement('div');
+            messageTime.className = 'message-time';
+            messageTime.textContent = getCurrentTime();
+            
+            messageHeader.appendChild(messageSender);
+            messageHeader.appendChild(messageTime);
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.innerHTML = `<p>${text}</p>`;
+            
+            messageDiv.appendChild(messageHeader);
+            messageDiv.appendChild(messageContent);
+            
+            if (sender === 'ai') {
+                const messageActions = document.createElement('div');
+                messageActions.className = 'message-actions';
+                messageActions.innerHTML = `
+                    <button class="action-btn"><i class="fas fa-volume-up"></i> Listen</button>
+                    <button class="action-btn"><i class="fas fa-save"></i> Save</button>
+                `;
+                messageDiv.appendChild(messageActions);
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            // Add to chat history
+            chatHistory.push({
+                sender,
+                text,
+                time: new Date().toISOString(),
+                subject: currentSubject
+            });
+        }
+
+        function getCurrentTime() {
+            const now = new Date();
+            return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function processUserMessage(message) {
+            // Hide typing indicator
+            typingIndicator.style.display = 'none';
+            
+            // Get AI response based on current subject
+            let aiResponse = getAIResponse(message);
+            
+            // Add AI response to chat
+            addMessageToChat('ai', aiResponse);
+            
+            // Speak the response
+            speakResponse(aiResponse);
+        }
+
+        function getAIResponse(message) {
+            const lowerMessage = message.toLowerCase();
+            const subjectData = subjectKnowledge[currentSubject];
+            
+            // Check for exact matches
+            for (const [key, response] of Object.entries(subjectData.responses)) {
+                if (lowerMessage.includes(key)) {
+                    return response;
+                }
+            }
+            
+            // Check if we have extra materials that might contain the answer
+            const extraText = subjectData.extraMaterials;
+            if (extraText) {
+                // Simple search in the extra materials (in a real app, you'd use more sophisticated search)
+                const searchTerms = message.toLowerCase().split(' ');
+                const foundContent = [];
+                
+                // Look for each search term in the extra materials
+                for (const term of searchTerms) {
+                    if (term.length > 3 && extraText.toLowerCase().includes(term)) {
+                        // Find the surrounding context
+                        const termIndex = extraText.toLowerCase().indexOf(term);
+                        const start = Math.max(0, termIndex - 50);
+                        const end = Math.min(extraText.length, termIndex + term.length + 150);
+                        foundContent.push(extraText.substring(start, end) + '...');
+                    }
+                }
+                
+                if (foundContent.length > 0) {
+                    return `I found some relevant information in your uploaded materials:\n\n${foundContent.join('\n\n')}\n\nWould you like me to elaborate on any of this?`;
+                }
+                
+                return `I didn't find an exact match, but here's something from your uploaded material that might help:\n\n${extraText.slice(0, 500)}...`;
+            }
+            
+            // Default response if no match found
+            return `I'm not entirely sure about "${message}" in the context of ${currentSubject}. Could you rephrase or ask about a core concept? You can also upload course materials for me to reference.`;
+        }
+
+        function changeSubject(newSubject) {
+            // Update UI
+            currentSubject = newSubject;
+            document.querySelector('.active-subject').classList.remove('active-subject');
+            
+            // Find and activate the new subject
+            subjectLinks.forEach(link => {
+                if (link.getAttribute('data-subject') === newSubject) {
+                    link.parentElement.classList.add('active-subject');
+                }
+            });
+            
+            // Update chat header
+            chatTitle.textContent = `${newSubject} Assistant`;
+            updateSubjectBadge();
+            
+            // Clear chat and show new welcome message
+            chatMessages.innerHTML = '';
+            addMessageToChat('ai', subjectKnowledge[newSubject].welcome);
+            
+            // Reset chat history for new subject
+            chatHistory = [];
+        }
+
+        function updateSubjectBadge() {
+            // Remove all existing badge classes
+            const badgeClasses = [
+                'badge-quantum', 'badge-biology', 'badge-calculus',
+                'badge-ml', 'badge-literature', 'badge-history'
+            ];
+            badgeClasses.forEach(cls => subjectBadge.classList.remove(cls));
+            
+            // Add appropriate badge class
+            switch(currentSubject) {
+                case "Quantum Physics":
+                    subjectBadge.classList.add('badge-quantum');
+                    break;
+                case "Molecular Biology":
+                    subjectBadge.classList.add('badge-biology');
+                    break;
+                case "Advanced Calculus":
+                    subjectBadge.classList.add('badge-calculus');
+                    break;
+                case "Machine Learning":
+                    subjectBadge.classList.add('badge-ml');
+                    break;
+                case "World Literature":
+                    subjectBadge.classList.add('badge-literature');
+                    break;
+                case "Modern History":
+                    subjectBadge.classList.add('badge-history');
+                    break;
+            }
+            
+            // Update badge text
+            subjectBadge.textContent = currentSubject;
+        }
+
+        function toggleVoiceInput() {
+            if (!isListening) {
+                startVoiceInput();
+            } else {
+                stopVoiceInput();
+            }
+        }
+
+        function startVoiceInput() {
+            // Check browser support
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert("Voice input is not supported in your browser. Try Chrome or Edge.");
+                return;
+            }
+            
+            // Create recognition object
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+            
+            recognition.onstart = function() {
+                isListening = true;
+                voiceBtn.classList.add('listening');
+            };
+            
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                chatInput.value = transcript;
+                handleChatInput();
+            };
+            
+            recognition.onerror = function(event) {
+                console.error("Speech recognition error:", event.error);
+                isListening = false;
+                voiceBtn.classList.remove('listening');
+            };
+            
+            recognition.onend = function() {
+                isListening = false;
+                voiceBtn.classList.remove('listening');
+            };
+            
+            recognition.start();
+        }
+
+        function stopVoiceInput() {
+            if (recognition) {
+                recognition.stop();
+            }
+            isListening = false;
+            voiceBtn.classList.remove('listening');
+        }
+
+        function speakResponse(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+                
+                // Set voice if available
+                const voices = speechSynthesis.getVoices();
+                if (voices.length > 0) {
+                    // Prefer a natural-sounding voice
+                    const preferredVoice = voices.find(v => v.name.includes('Google') && v.lang.includes('en')) || 
+                                          voices.find(v => v.lang.includes('en'));
+                    if (preferredVoice) {
+                        utterance.voice = preferredVoice;
+                    }
+                }
+                
+                speechSynthesis.speak(utterance);
+            }
+        }
+
+        function handlePDFUpload(event) {
+            const file = event.target.files[0];
+            if (!file || file.type !== 'application/pdf') {
+                alert("Please upload a valid PDF file.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function () {
+                const typedarray = new Uint8Array(this.result);
+
+                pdfjsLib.getDocument(typedarray).promise.then(async pdf => {
+                    let fullText = '';
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const content = await page.getTextContent();
+                        const strings = content.items.map(item => item.str).join(' ');
+                        fullText += strings + '\n';
+                    }
+
+                    if (!subjectKnowledge[currentSubject].extraMaterials) {
+                        subjectKnowledge[currentSubject].extraMaterials = '';
+                    }
+                    subjectKnowledge[currentSubject].extraMaterials += '\n' + fullText;
+
+                    addMessageToChat('ai', `✅ PDF loaded and added to ${currentSubject} knowledge! I can now reference this material in our discussions.`);
+                }).catch(err => {
+                    console.error('PDF Read Error:', err);
+                    addMessageToChat('ai', '⚠️ Could not extract text from the PDF. Please try another file.');
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Open Router API Integration (simulated for this demo)
+        function callOpenRouterAPI(prompt, subject) {
+            // In a real implementation, this would call your backend which uses the Open Router API
+            // Example structure:
+            /*
+            fetch('https://your-backend.com/openrouter', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer YOUR_API_KEY'
+                },
+                body: JSON.stringify({
+                    model: 'openai/gpt-4',
+                    messages: [
+                        { role: 'system', content: `You are an expert tutor in ${subject}` },
+                        { role: 'user', content: prompt }
+                    ],
+                    temperature: 0.7,
+                    max_tokens: 500
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                return data.choices[0].message.content;
+            });
+            */
+            
+            // For this demo, we'll simulate a response
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const responses = {
+                        "Quantum Physics": "Quantum physics explores the behavior of matter and energy at the atomic and subatomic levels. It introduces concepts like wave-particle duality and quantum entanglement that challenge classical physics.",
+                        "Molecular Biology": "Molecular biology examines biological activity at the molecular level, focusing on DNA, RNA, and protein synthesis to understand cellular processes and genetic expression.",
+                        "Advanced Calculus": "Advanced calculus extends fundamental calculus concepts to multivariable functions, vector calculus, and differential equations, providing tools for modeling complex systems.",
+                        "Machine Learning": "Machine learning enables computers to learn from data without explicit programming, using algorithms to identify patterns and make predictions or decisions.",
+                        "World Literature": "World literature encompasses diverse literary traditions across cultures, exploring universal human experiences through various narrative forms and styles.",
+                        "Modern History": "Modern history covers the period from the late 18th century to present, examining industrialization, world wars, decolonization, and technological revolutions."
+                    };
+                    
+                    resolve(`Open Router API Response (${subject}): ${responses[subject] || "I'm an AI assistant specialized in " + subject}`);
+                }, 1500);
+            });
+        }
+    </script>
+</body>
+</html>
