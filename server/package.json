@@ -1,22 +1,27 @@
 {
   "name": "ai-study-buddy",
   "version": "1.0.0",
-  "description": "AI Study Buddy with Mood Tracking",
+  "description": "AI-powered study assistant with multi-subject support",
   "main": "server/server.js",
   "scripts": {
+    "setup-db": "node server/setup-sqlite.js",
+    "dev": "nodemon server/server.js",
     "start": "node server/server.js",
-    "dev": "nodemon server/server.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": ["ai", "education", "study", "chatbot"],
+  "author": "Your Name",
+  "license": "MIT",
   "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5",
-    "dotenv": "^16.3.1",
     "express": "^4.18.2",
-    "jsonwebtoken": "^9.0.2",
-    "mysql2": "^3.6.5",
-    "uuid": "^9.0.1"
+    "cors": "^2.8.5",
+    "sqlite3": "^5.1.6",
+    "bcryptjs": "^2.4.3",
+    "uuid": "^9.0.0",
+    "jsonwebtoken": "^9.0.0",
+    "dotenv": "^16.0.3"
   },
   "devDependencies": {
-    "nodemon": "^3.0.2"
+    "nodemon": "^2.0.22"
   }
 }
