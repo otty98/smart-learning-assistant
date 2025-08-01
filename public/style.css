@@ -6,7 +6,7 @@
     --light-color: #f8f9fa;
     --dark-color: #343a40;
     --success-color: #28a745;
-    --warning-color: #ffc107;
+    --warning-color: #ff1;
     --danger-color: #dc3545;
     --border-radius: 8px;
     --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -44,7 +44,7 @@ body {
 }
 
 .auth-container {
-    background: white;
+    background: yellow;
     padding: 30px;
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
