@@ -1032,27 +1032,48 @@
     </div>
         
         <div class="features-container">
+        <!-- Team Member 1 -->
         <div class="feature-card">
             <div class="image-container">
-                <img src="images/Mandla.jpg" alt="team pic" class="team- img" /></div>
-                <h3>Vundla Mandlenkosi</h3>
-                <p>I built and managed the backend for the AI Study Buddy app, handling user authentication, chat logic, PDF uploads, and AI integration. I connected the frontend to AI models using REST APIs, ensured smooth data processing, and kept everything secure and scalable for a seamless learning experience.</p>
+                <img src="images/mandla.jpg" alt="Mandlenkosi Vundla" class="team-img" />
             </div>
-    
-            <div class="feature-card">
-             <div class="image-container">
-                 <img src="images/owethu.jpg" alt="team pic" class="team- img" /> </div>
-                <h3>Peyane Owethu</h3>
-                <p>Interact with voice commands and receive spoken explanations. Our advanced TTS system delivers clear, natural-sounding responses for enhanced learning.</p>
+            <h3>Mandlenkosi Vundla</h3>
+            <p><strong>Backend & AI Integration:</strong> 
+            • Developed the Node.js/Express server with JWT authentication<br>
+            • Implemented OpenRouter API integration for AI responses<br>
+            • Built PDF processing system using PDF.js<br>
+            • Designed MySQL database schema and queries<br>
+            • Configured server deployment on Railway</p>
+        </div>
+
+        <!-- Team Member 2 -->
+        <div class="feature-card">
+            <div class="image-container">
+                <img src="images/owethu.jpg" alt="Owethu Peyane" class="team-img" />
             </div>
-                
-            <div class="feature-card">
-                <div class="image-container">
-                    <img src="../images/" alt="team pic" class="team- img" /> </div>
-                <h3>Mlambo Zama</h3>
-                <p>Upload your course materials to create a custom knowledge base. The AI references your documents to provide tailored explanations and study resources.</p>
+            <h3>Owethu Peyane</h3>
+            <p><strong>Frontend Development:</strong>
+            • Created responsive UI with HTML/CSS/JavaScript<br>
+            • Implemented chat interface and message components<br>
+            • Developed voice interaction using Web Speech API<br>
+            • Built subject selection system with progress tracking<br>
+            • Deployed frontend to Vercel</p>
+        </div>
+
+        <!-- Team Member 3 -->
+        <div class="feature-card">
+            <div class="image-container">
+                <img src="images/zama.jpg" alt="Zama Mlambo" class="team-img" />
             </div>
-                </div>
+            <h3>Zama Mlambo</h3>
+            <p><strong>UX Design & Testing:</strong>
+            • Designed wireframes and user flows<br>
+            • Created color scheme and visual identity<br>
+            • Implemented accessibility features<br>
+            • Conducted user testing and feedback sessions<br>
+            • Optimized performance across devices</p>
+        </div>
+    </div>
             
 
 
@@ -1603,7 +1624,7 @@
         function callOpenRouterAPI(prompt, subject) {
             // In a real implementation, this would call your backend which uses the Open Router API
             // Example structure:
-            /*
+            
             fetch('https://your-backend.com/openrouter', {
                 method: 'POST',
                 headers: {
@@ -1624,7 +1645,7 @@
             .then(data => {
                 return data.choices[0].message.content;
             });
-            */
+            
             
             // For this demo, we'll simulate a response
             return new Promise(resolve => {
