@@ -1,405 +1,430 @@
-// DOM Elements
-const authModal = document.getElementById('auth-modal');
-const loginForm = document.getElementById('login-form');
-const registerForm = document.getElementById('register-form');
-const loginBtn = document.getElementById('login-btn');
-const registerBtn = document.getElementById('register-btn');
-const closeAuthModal = document.querySelector('.close-auth-modal');
-const authTabs = document.querySelectorAll('.auth-tab');
-const userProfile = document.getElementById('user-profile');
-const userAvatar = document.getElementById('user-avatar');
-const logoutBtn = document.getElementById('logout-btn');
+// server/server.js (Final SQLite Version)
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const bcrypt = require('bcryptjs');
+const path = require('path');
+const jwt = require('jsonwebtoken');
+const { getDatabaseConnection } = require('./database');
 
-// Chat elements
-const chatInput = document.getElementById('chat-input');
-const sendButton = document.getElementById('send-button');
-const chatMessages = document.getElementById('chat-messages');
-const typingIndicator = document.getElementById('typing-indicator');
-const voiceBtn = document.getElementById('voice-btn');
-const subjectLinks = document.querySelectorAll('.subject-list a');
-const subjectBadge = document.querySelector('.subject-badge');
-const chatTitle = document.querySelector('.chat-header h2');
-const pdfUpload = document.getElementById('pdf-upload');
+// Initialize Express App
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-// App State
-let currentUser = null;
-let currentSubject = "Quantum Physics";
-let authToken = null;
+// Middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(cors({
+    origin: [
+        `http://localhost:${PORT}`, 
+        `http://127.0.0.1:${PORT}`,
+        'https://your-production-domain.com' // Add your production domain
+    ],
+    credentials: true
+}));
 
-// Initialize the app
-document.addEventListener('DOMContentLoaded', () => {
-    // Check if user is already logged in
-    const savedToken = localStorage.getItem('authToken');
-    if (savedToken) {
-        verifyToken(savedToken);
-    }
+// Serve static files
+app.use(express.static(path.join(__dirname, '..', 'public')));
+
+// JWT Authentication Middleware
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
     
-    // Set up event listeners
-    setupEventListeners();
+    if (!token) return res.sendStatus(401);
+    
+    jwt.verify(token, process.env.AUTH_SECRET, (err, user) => {
+        if (err) {
+            console.error('JWT verification error:', err);
+            return res.sendStatus(403);
+        }
+        req.user = user;
+        next();
+    });
+}
+
+// Helper Functions
+async function analyzeSentiment(text) {
+    try {
+        // Simple sentiment analysis (replace with a real API if needed)
+        const positiveWords = ['good', 'great', 'excellent', 'happy', 'love', 'like'];
+        const negativeWords = ['bad', 'terrible', 'awful', 'hate', 'sad', 'angry'];
+        
+        const words = text.toLowerCase().match(/\b\w+\b/g) || [];
+        let score = 0;
+        
+        words.forEach(word => {
+            if (positiveWords.includes(word)) score += 0.1;
+            if (negativeWords.includes(word)) score -= 0.1;
+        });
+        
+        return {
+            score: Math.max(-1, Math.min(1, score)),
+            magnitude: Math.min(1, words.length * 0.05) // Scale with message length
+        };
+    } catch (error) {
+        console.error('Sentiment analysis error:', error);
+        return { score: 0, magnitude: 0 };
+    }
+}
+
+// API Routes
+
+// Health Check
+app.get('/api/health', async (req, res) => {
+    try {
+        const db = await getDatabaseConnection();
+        await db.get('SELECT 1'); // Simple query to test connection
+        
+        res.json({
+            status: 'OK',
+            database: 'SQLite',
+            openRouterConfigured: !!process.env.OPENROUTER_API_KEY,
+            uptime: process.uptime()
+        });
+    } catch (error) {
+        console.error('Health check failed:', error);
+        res.status(500).json({ status: 'Unhealthy', error: error.message });
+    }
 });
 
-function setupEventListeners() {
-    // Auth modal triggers
-    closeAuthModal.addEventListener('click', closeAuthModal);
+// User Registration
+app.post('/api/signup', async (req, res) => {
+    const { name, email, password } = req.body;
     
-    // Auth tab switching
-    authTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const tabName = tab.dataset.tab;
-            switchAuthTab(tabName);
-        });
-    });
-    
-    // Auth form submissions
-    loginBtn.addEventListener('click', handleLogin);
-    registerBtn.addEventListener('click', handleRegister);
-    logoutBtn.addEventListener('click', handleLogout);
-    
-    // Chat input events
-    chatInput.addEventListener('input', handleChatInput);
-    chatInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            if (chatInput.value.trim() !== '') {
-                sendMessage();
-            }
-        }
-    });
-    
-    sendButton.addEventListener('click', sendMessage);
-    
-    // Subject selection events
-    subjectLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const subject = this.getAttribute('data-subject');
-            changeSubject(subject);
-        });
-    });
-    
-    // Voice input events
-    voiceBtn.addEventListener('click', toggleVoiceInput);
-    
-    // PDF upload event
-    pdfUpload.addEventListener('change', handlePDFUpload);
-}
-
-// Auth Functions
-function openAuthModal(defaultTab = 'login') {
-    authModal.classList.remove('hidden');
-    switchAuthTab(defaultTab);
-}
-
-function closeAuthModal() {
-    authModal.classList.add('hidden');
-}
-
-function switchAuthTab(tabName) {
-    authTabs.forEach(tab => {
-        if (tab.dataset.tab === tabName) {
-            tab.classList.add('active');
-        } else {
-            tab.classList.remove('active');
-        }
-    });
-    
-    if (tabName === 'login') {
-        loginForm.classList.remove('hidden');
-        registerForm.classList.add('hidden');
-    } else {
-        loginForm.classList.add('hidden');
-        registerForm.classList.remove('hidden');
+    // Basic validation
+    if (!name || !email || !password) {
+        return res.status(400).json({ error: 'All fields are required.' });
     }
-}
 
-async function handleLogin() {
-    const email = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-password').value.trim();
+    try {
+        const db = await getDatabaseConnection();
+        
+        // Check if email exists
+        const existingUser = await db.get(
+            'SELECT id FROM Users WHERE email = ?', 
+            [email]
+        );
+        
+        if (existingUser) {
+            return res.status(409).json({ error: 'Email already registered.' });
+        }
+
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        // Create user
+        const result = await db.run(
+            'INSERT INTO Users (name, email, password) VALUES (?, ?, ?)',
+            [name, email, hashedPassword]
+        );
+
+        // Generate JWT token
+        const token = jwt.sign(
+            { userId: result.lastID }, 
+            process.env.AUTH_SECRET, 
+            { expiresIn: '24h' }
+        );
+        
+        res.status(201).json({ 
+            message: 'User registered successfully!', 
+            userId: result.lastID,
+            token,
+            user: { name, email }
+        });
+    } catch (error) {
+        console.error('Signup error:', error);
+        res.status(500).json({ error: 'An error occurred during registration.' });
+    }
+});
+
+// User Login
+app.post('/api/login', async (req, res) => {
+    const { email, password } = req.body;
     
     if (!email || !password) {
-        alert('Please enter both email and password');
-        return;
+        return res.status(400).json({ error: 'Email and password are required.' });
     }
-    
+
     try {
-        const response = await fetch('/api/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email, password })
-        });
+        const db = await getDatabaseConnection();
         
-        const data = await response.json();
+        // Get user from database
+        const user = await db.get(
+            'SELECT id, name, email, password FROM Users WHERE email = ?', 
+            [email]
+        );
         
-        if (response.ok) {
-            authToken = data.token;
-            currentUser = data.user;
-            
-            // Store token in localStorage
-            localStorage.setItem('authToken', authToken);
-            localStorage.setItem('user', JSON.stringify(currentUser));
-            
-            // Update UI
-            updateAuthUI();
-            closeAuthModal();
-            
-            // Load initial data
-            loadInitialData();
-        } else {
-            alert(data.error || 'Login failed');
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid email or password.' });
         }
+
+        // Verify password
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({ error: 'Invalid email or password.' });
+        }
+
+        // Update last login time
+        await db.run(
+            'UPDATE Users SET last_login = CURRENT_TIMESTAMP WHERE id = ?',
+            [user.id]
+        );
+
+        // Generate JWT token
+        const token = jwt.sign(
+            { userId: user.id }, 
+            process.env.AUTH_SECRET, 
+            { expiresIn: '24h' }
+        );
+        
+        res.json({ 
+            message: 'Logged in successfully!', 
+            userId: user.id,
+            token,
+            user: {
+                name: user.name,
+                email: user.email
+            }
+        });
     } catch (error) {
         console.error('Login error:', error);
-        alert('An error occurred during login');
+        res.status(500).json({ error: 'An error occurred during login.' });
     }
-}
+});
 
-async function handleRegister() {
-    const name = document.getElementById('register-name').value.trim();
-    const email = document.getElementById('register-email').value.trim();
-    const password = document.getElementById('register-password').value.trim();
-    
-    if (!name || !email || !password) {
-        alert('Please fill in all fields');
-        return;
-    }
-    
+// Get User Profile
+app.get('/api/user/:userId', authenticateToken, async (req, res) => {
     try {
-        const response = await fetch('/api/signup', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ name, email, password })
-        });
+        const db = await getDatabaseConnection();
+        const user = await db.get(
+            'SELECT id, name, email, created_at, last_login FROM Users WHERE id = ?',
+            [req.params.userId]
+        );
         
-        const data = await response.json();
-        
-        if (response.ok) {
-            alert('Registration successful! Please login.');
-            switchAuthTab('login');
-        } else {
-            alert(data.error || 'Registration failed');
+        if (!user) {
+            return res.status(404).json({ error: 'User not found.' });
         }
+        
+        res.json(user);
     } catch (error) {
-        console.error('Registration error:', error);
-        alert('An error occurred during registration');
+        console.error('Get user error:', error);
+        res.status(500).json({ error: 'Failed to fetch user data.' });
     }
-}
+});
 
-function handleLogout() {
-    // Clear auth data
-    authToken = null;
-    currentUser = null;
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
+// AI Chat Endpoint
+app.post('/api/chat', authenticateToken, async (req, res) => {
+    const { userId, message, subject } = req.body;
     
-    // Update UI
-    updateAuthUI();
-    
-    // Clear chat and other user-specific data
-    resetAppState();
-}
+    if (!message || !subject) {
+        return res.status(400).json({ error: 'Message and subject are required.' });
+    }
 
-async function verifyToken(token) {
     try {
-        const response = await fetch('/api/verify-token', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
+        const db = await getDatabaseConnection();
+        
+        // Get subject ID
+        const subjectRow = await db.get(
+            'SELECT id FROM Subjects WHERE name = ?',
+            [subject]
+        );
+        
+        if (!subjectRow) {
+            return res.status(400).json({ error: 'Invalid subject.' });
+        }
+        
+        const subjectId = subjectRow.id;
+        let aiResponse;
+        let usingFallback = true;
+
+        // Call OpenRouter API if configured
+        if (process.env.OPENROUTER_API_KEY) {
+            try {
+                const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                        'HTTP-Referer': `http://localhost:${PORT}/`
+                    },
+                    body: JSON.stringify({
+                        model: process.env.OPENROUTER_MODEL_ID || 'openai/gpt-3.5-turbo',
+                        messages: [{
+                            role: "system",
+                            content: `You are an expert tutor in ${subject}. Explain concepts clearly at a college level. Provide examples when helpful.`
+                        }, {
+                            role: "user",
+                            content: message
+                        }],
+                        temperature: 0.7,
+                        max_tokens: 1000
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                aiResponse = data.choices?.[0]?.message?.content || "I couldn't generate a response.";
+                usingFallback = false;
+            } catch (apiError) {
+                console.error('OpenRouter API error:', apiError);
+                aiResponse = "I'm having trouble accessing my knowledge base. Please try again later.";
             }
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            authToken = token;
-            currentUser = data.user;
-            
-            // Update UI
-            updateAuthUI();
-            
-            // Load initial data
-            loadInitialData();
         } else {
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('user');
+            // Fallback response
+            aiResponse = `I'm here to help with ${subject}! ${message.includes('?') ? 
+                "That's an interesting question. In this subject, we typically consider..." : 
+                "Could you tell me more about what you're looking to understand?"}`;
         }
-    } catch (error) {
-        console.error('Token verification error:', error);
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
-    }
-}
 
-function updateAuthUI() {
-    if (currentUser) {
-        // User is logged in
-        userProfile.classList.remove('hidden');
-        userAvatar.textContent = currentUser.name.charAt(0).toUpperCase();
-    } else {
-        // User is logged out
-        userProfile.classList.add('hidden');
-        openAuthModal();
-    }
-}
+        // Store messages
+        await db.run(
+            'INSERT INTO ChatMessages (userId, subjectId, sender, text) VALUES (?, ?, ?, ?)',
+            [userId, subjectId, 'user', message]
+        );
+        
+        await db.run(
+            'INSERT INTO ChatMessages (userId, subjectId, sender, text) VALUES (?, ?, ?, ?)',
+            [userId, subjectId, 'ai', aiResponse]
+        );
 
-function loadInitialData() {
-    // Load user's chat history, mood data, etc.
-    loadChatHistory();
-    loadMoodData();
-}
+        // Analyze and store sentiment
+        const sentiment = await analyzeSentiment(message);
+        await db.run(
+            'INSERT INTO MoodLogs (userId, subjectId, score, magnitude, message) VALUES (?, ?, ?, ?, ?)',
+            [userId, subjectId, sentiment.score, sentiment.magnitude, message]
+        );
 
-function resetAppState() {
-    // Clear chat, reset subject, etc.
-    document.getElementById('chat-messages').innerHTML = '';
-    currentSubject = "Quantum Physics";
-    updateSubjectUI();
-}
-
-// Chat Functions with OpenRouter Integration
-async function sendMessageToAI(message) {
-    if (!currentUser || !currentSubject) return null;
-    
-    try {
-        const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                userId: currentUser.id,
-                message: message,
-                subject: currentSubject
-            })
+        res.json({ 
+            aiResponse, 
+            sentiment,
+            usingFallback 
         });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            return data.aiResponse;
-        } else {
-            console.error('AI response error:', data.error);
-            return "I encountered an error processing your request.";
-        }
     } catch (error) {
         console.error('Chat error:', error);
-        return "Sorry, I'm having trouble connecting to the AI service.";
+        res.status(500).json({ error: 'An error occurred during chat processing.' });
     }
-}
+});
 
-async function handlePDFUpload(event) {
-    const file = event.target.files[0];
-    if (!file || file.type !== 'application/pdf') {
-        alert("Please upload a valid PDF file.");
-        return;
+// Get Chat History
+app.get('/api/history/:userId', authenticateToken, async (req, res) => {
+    const { userId } = req.params;
+    const { subject, limit } = req.query;
+    
+    if (!subject) {
+        return res.status(400).json({ error: 'Subject is required.' });
     }
 
-    const reader = new FileReader();
-    reader.onload = async function() {
-        try {
-            const content = reader.result;
-            
-            const response = await fetch('/api/upload-pdf-content', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${authToken}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    userId: currentUser.id,
-                    subject: currentSubject,
-                    fileName: file.name,
-                    content: content
-                })
-            });
-            
-            if (response.ok) {
-                addMessageToChat('ai', `✅ PDF uploaded successfully! I can now reference this material for ${currentSubject}.`);
-            } else {
-                const errorData = await response.json();
-                addMessageToChat('ai', `⚠️ Error uploading PDF: ${errorData.error || 'Unknown error'}`);
-            }
-        } catch (error) {
-            console.error('PDF upload error:', error);
-            addMessageToChat('ai', '⚠️ An error occurred while uploading the PDF.');
+    try {
+        const db = await getDatabaseConnection();
+        
+        const subjectRow = await db.get(
+            'SELECT id FROM Subjects WHERE name = ?',
+            [subject]
+        );
+        
+        if (!subjectRow) {
+            return res.status(400).json({ error: 'Invalid subject.' });
         }
-    };
-    reader.readAsDataURL(file);
-}
-
-// Existing chat UI functions
-function sendMessage() {
-    const messageText = chatInput.value.trim();
-    if (messageText === '') return;
-    
-    // Add user message to chat
-    addMessageToChat('user', messageText);
-    chatInput.value = '';
-    chatInput.style.height = 'auto';
-    
-    // Process message with AI
-    processUserMessage(messageText);
-}
-
-function addMessageToChat(sender, text) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message ${sender}-message`;
-    
-    const messageHeader = document.createElement('div');
-    messageHeader.className = 'message-header';
-    
-    const messageSender = document.createElement('div');
-    messageSender.className = 'message-sender';
-    messageSender.textContent = sender === 'user' ? 'You' : 'Study Buddy';
-    
-    const messageTime = document.createElement('div');
-    messageTime.className = 'message-time';
-    messageTime.textContent = getCurrentTime();
-    
-    messageHeader.appendChild(messageSender);
-    messageHeader.appendChild(messageTime);
-    
-    const messageContent = document.createElement('div');
-    messageContent.className = 'message-content';
-    messageContent.innerHTML = `<p>${text}</p>`;
-    
-    messageDiv.appendChild(messageHeader);
-    messageDiv.appendChild(messageContent);
-    
-    if (sender === 'ai') {
-        const messageActions = document.createElement('div');
-        messageActions.className = 'message-actions';
-        messageActions.innerHTML = `
-            <button class="action-btn"><i class="fas fa-volume-up"></i> Listen</button>
-            <button class="action-btn"><i class="fas fa-save"></i> Save</button>
+        
+        const query = `
+            SELECT cm.id, cm.sender, cm.text, cm.timestamp, s.name as subject
+            FROM ChatMessages cm
+            JOIN Subjects s ON cm.subjectId = s.id
+            WHERE cm.userId = ? AND cm.subjectId = ?
+            ORDER BY cm.timestamp DESC
+            ${limit ? 'LIMIT ?' : ''}
         `;
-        messageDiv.appendChild(messageActions);
+        
+        const params = [userId, subjectRow.id];
+        if (limit) params.push(parseInt(limit));
+        
+        const history = await db.all(query, params);
+        
+        res.json({ history: history.reverse() }); // Return in chronological order
+    } catch (error) {
+        console.error('History error:', error);
+        res.status(500).json({ error: 'Failed to fetch chat history.' });
     }
-    
-    chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
+});
 
-async function processUserMessage(message) {
-    // Show typing indicator
-    typingIndicator.style.display = 'flex';
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+// Get Mood Logs
+app.get('/api/moodlogs/:userId', authenticateToken, async (req, res) => {
+    const { userId } = req.params;
+    const { days } = req.query;
     
-    // Get AI response from backend (which uses OpenRouter)
-    const aiResponse = await sendMessageToAI(message);
-    
-    // Hide typing indicator and show response
-    typingIndicator.style.display = 'none';
-    addMessageToChat('ai', aiResponse);
-    
-    // Speak the response if available
-    if ('speechSynthesis' in window) {
-        const utterance = new SpeechSynthesisUtterance(aiResponse);
-        speechSynthesis.speak(utterance);
+    try {
+        const db = await getDatabaseConnection();
+        
+        let query = `
+            SELECT ml.id, s.name as subject, ml.score, ml.magnitude, 
+                   ml.message, ml.timestamp
+            FROM MoodLogs ml
+            JOIN Subjects s ON ml.subjectId = s.id
+            WHERE ml.userId = ?
+        `;
+        
+        const params = [userId];
+        
+        if (days) {
+            query += ' AND ml.timestamp >= datetime("now", ?)';
+            params.push(`-${days} days`);
+        }
+        
+        query += ' ORDER BY ml.timestamp DESC';
+        
+        const moodLogs = await db.all(query, params);
+        
+        res.json({ moodLogs });
+    } catch (error) {
+        console.error('Mood logs error:', error);
+        res.status(500).json({ error: 'Failed to fetch mood logs.' });
     }
-}
+});
 
-// Rest of your existing functions (getCurrentTime, changeSubject, etc.) remain the same
+// Get All Subjects
+app.get('/api/subjects', async (req, res) => {
+    try {
+        const db = await getDatabaseConnection();
+        const subjects = await db.all('SELECT * FROM Subjects');
+        res.json({ subjects });
+    } catch (error) {
+        console.error('Subjects error:', error);
+        res.status(500).json({ error: 'Failed to fetch subjects.' });
+    }
+});
+
+// Error Handling Middleware
+app.use((err, req, res, next) => {
+    console.error('Server error:', err);
+    res.status(500).json({ error: 'Internal server error' });
+});
+
+// 404 Handler
+app.use((req, res) => {
+    res.status(404).json({ error: 'Endpoint not found' });
+});
+
+// Start Server
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+    console.log(`📊 Database: SQLite`);
+    console.log(`🔐 Auth: JWT`);
+    console.log(`🤖 OpenRouter: ${process.env.OPENROUTER_API_KEY ? 'Configured' : 'Not configured'}`);
+});
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+    console.log('\n🛑 Shutting down gracefully...');
+    try {
+        const db = await getDatabaseConnection();
+        await db.close();
+        console.log('✅ Database connection closed.');
+        process.exit(0);
+    } catch (err) {
+        console.error('Error during shutdown:', err);
+        process.exit(1);
+    }
+});
